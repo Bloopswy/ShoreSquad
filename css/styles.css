@@ -657,12 +657,16 @@ button {
 }
 
 .forecast-card {
-    background: linear-gradient(135deg, rgba(0, 119, 182, 0.08), rgba(0, 180, 216, 0.08));
+    background: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
     min-height: 140px;
+    border-radius: var(--radius-lg);
     border-left: 4px solid var(--primary-blue);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
 }
 
 .forecast-card h4 {
