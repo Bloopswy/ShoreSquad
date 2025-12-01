@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rally your crew, track weather, and hit the next beach cleanup with ShoreSquad - the dope map app for eco-conscious beach lovers.">
+    <meta name="theme-color" content="#0077B6">
+    <title>ShoreSquad - Beach Cleanup Crew Coordinator</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Header Navigation -->
+    <header role="banner" class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="logo-icon">🌊</span>
+                    <span class="logo-text">ShoreSquad</span>
+                </h1>
+                <nav role="navigation" aria-label="Main navigation" class="nav-primary">
+                    <ul>
+                        <li><a href="#map" class="nav-link">Map</a></li>
+                        <li><a href="#crew" class="nav-link">My Crew</a></li>
+                        <li><a href="#weather" class="nav-link">Weather</a></li>
+                        <li><a href="#mission" class="nav-link">Mission</a></li>
+                    </ul>
+                </nav>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero" role="region" aria-label="Hero section">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Rally Your Crew</h2>
+                <p>Coordinate beach cleanups, track conditions in real-time, and make environmental action social and fun.</p>
+                <div class="hero-cta">
+                    <button id="start-btn" class="btn btn-primary" aria-label="Start coordinating your beach cleanup">Get Started</button>
+                    <button id="learn-more-btn" class="btn btn-secondary" aria-label="Learn more about ShoreSquad">Learn More</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+                    <path d="M50 120 Q100 80 150 120" stroke="currentColor" stroke-width="3" fill="none"/>
+                    <circle cx="80" cy="100" r="5" fill="currentColor" opacity="0.6"/>
+                    <circle cx="120" cy="100" r="5" fill="currentColor" opacity="0.6"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="main-content" role="main" class="main">
+        <div class="container">
+            <!-- Map Section -->
+            <section id="map" class="feature-section" role="region" aria-label="Beach map">
+                <h2>Find Your Beach</h2>
+                <div class="map-container" id="map-container">
+                    <div class="map-placeholder" role="status" aria-live="polite">
+                        <p>📍 Interactive map loading...</p>
+                        <p class="small-text">Enable location to discover nearby beaches</p>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" id="location-btn" aria-label="Enable location services">
+                    <span>📍 Use My Location</span>
+                </button>
+            </section>
+
+            <!-- Crew Section -->
+            <section id="crew" class="feature-section" role="region" aria-label="Crew management">
+                <h2>Your Squad</h2>
+                <div class="crew-grid" id="crew-grid" role="list">
+                    <div class="crew-card add-crew-card" role="listitem">
+                        <button id="add-crew-btn" class="add-crew-btn" aria-label="Add new crew member">
+                            <span class="plus-icon">+</span>
+                            <span>Add Member</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="crew-input" class="crew-input-container hidden" role="dialog" aria-labelledby="crew-dialog-title">
+                    <form id="crew-form" class="crew-form">
+                        <h3 id="crew-dialog-title">Add Crew Member</h3>
+                        <div class="form-group">
+                            <label for="crew-name">Name *</label>
+                            <input type="text" id="crew-name" name="name" required aria-required="true" placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="crew-role">Role *</label>
+                            <select id="crew-role" name="role" required aria-required="true">
+                                <option value="">Select role</option>
+                                <option value="leader">Squad Leader</option>
+                                <option value="volunteer">Volunteer</option>
+                                <option value="scout">Scout</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" aria-label="Save crew member">Save</button>
+                            <button type="button" id="cancel-crew-btn" class="btn btn-secondary" aria-label="Cancel adding crew member">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Weather Section -->
+            <section id="weather" class="feature-section" role="region" aria-label="Weather information">
+                <h2>Beach Conditions</h2>
+                <div class="weather-grid" id="weather-grid" role="list">
+                    <div class="weather-card" role="listitem">
+                        <h3>Current Weather</h3>
+                        <div id="current-weather" class="weather-content" role="status" aria-live="polite">
+                            <p>Weather data unavailable</p>
+                        </div>
+                    </div>
+                    <div class="weather-card" role="listitem">
+                        <h3>Ocean Conditions</h3>
+                        <div id="ocean-conditions" class="weather-content" role="status" aria-live="polite">
+                            <p>Enable location for wave & tide data</p>
+                        </div>
+                    </div>
+                    <div class="weather-card" role="listitem">
+                        <h3>Best Time</h3>
+                        <div id="best-time" class="weather-content" role="status" aria-live="polite">
+                            <p>Next ideal cleanup window</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mission Section -->
+            <section id="mission" class="feature-section mission-section" role="region" aria-label="Your mission and achievements">
+                <h2>Your Mission</h2>
+                <div class="mission-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="cleanups-count">0</div>
+                        <div class="stat-label">Beach Cleanups</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="trash-count">0</div>
+                        <div class="stat-label">Items Removed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="crew-count">0</div>
+                        <div class="stat-label">Squad Members</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="impact-count">0</div>
+                        <div class="stat-label">Beaches Saved</div>
+                    </div>
+                </div>
+                <div class="mission-description">
+                    <p>Every cleanup matters. Track your environmental impact and inspire your community to keep our beaches pristine.</p>
+                </div>
+                <button id="schedule-cleanup-btn" class="btn btn-primary" aria-label="Schedule your next cleanup">Schedule Next Cleanup</button>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer role="contentinfo" class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ShoreSquad</h3>
+                    <p>Making beach cleanup fun, social, and impactful.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#" aria-label="Learn about our mission">About</a></li>
+                        <li><a href="#" aria-label="View our privacy policy">Privacy</a></li>
+                        <li><a href="#" aria-label="View our terms of service">Terms</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#" aria-label="Follow us on Twitter">Twitter</a></li>
+                        <li><a href="#" aria-label="Follow us on Instagram">Instagram</a></li>
+                        <li><a href="#" aria-label="Join our Discord">Discord</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ShoreSquad. Building a cleaner future, one beach at a time. 🌊</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/app.js" defer></script>
+</body>
+</html>
