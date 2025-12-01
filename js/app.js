@@ -15,12 +15,20 @@ const AppConfig = {
         theme: 'shoresquad_theme'
     },
     api: {
-        // NEA Realtime Weather Readings API - Singapore
+        // NEA 24-Hour Weather Forecast API - Singapore (main endpoint)
+        nea24HourWeather: 'https://api.data.gov.sg/v1/environment/24-hour-weather-forecast',
+        // Additional NEA endpoints for fallback
         neaWeatherReadings: 'https://api.data.gov.sg/v1/environment/air-temperature',
-        neaWeatherForecast: 'https://api.data.gov.sg/v1/environment/2-hour-weather-forecast',
         neaWeather4Day: 'https://api.data.gov.sg/v1/environment/4-day-weather-forecast',
         // Fallback: Open-Meteo for extended forecasts
         openMeteo: 'https://api.open-meteo.com/v1/forecast'
+    },
+    // Mock data for demonstration
+    mockStats: {
+        cleanups: 12,
+        trash: 847,
+        beaches: 5,
+        crewMembers: 28
     }
 };
 
@@ -35,7 +43,8 @@ const AppState = {
         crewMembers: 0
     },
     userLocation: null,
-    theme: localStorage.getItem(AppConfig.storageKeys.theme) || 'light'
+    theme: localStorage.getItem(AppConfig.storageKeys.theme) || 'light',
+    weather: null
 };
 
 // ============================================
@@ -64,9 +73,16 @@ function loadStateFromStorage() {
         const savedStats = localStorage.getItem(AppConfig.storageKeys.stats);
         
         if (savedCrew) AppState.crew = JSON.parse(savedCrew);
-        if (savedStats) AppState.stats = JSON.parse(savedStats);
+        if (savedStats) {
+            AppState.stats = JSON.parse(savedStats);
+        } else {
+            // Initialize with mock data if no saved stats
+            AppState.stats = { ...AppConfig.mockStats };
+        }
     } catch (error) {
         console.error('Error loading state from storage:', error);
+        // Fallback to mock data
+        AppState.stats = { ...AppConfig.mockStats };
     }
 }
 
@@ -215,23 +231,66 @@ function updateLocationUI() {
 
 async function fetchWeatherData() {
     try {
-        // Fetch NEA 4-day forecast for Singapore
-        const forecastResponse = await fetch(AppConfig.api.neaWeather4Day);
-        const forecastData = await forecastResponse.json();
+        console.log('🌦️ Fetching weather from NEA 24-Hour API...');
         
-        // Fetch current conditions
-        const readingsResponse = await fetch(AppConfig.api.neaWeatherReadings);
-        const readingsData = await readingsResponse.json();
+        // Use NEA 24-Hour Weather Forecast API
+        const response = await fetch(AppConfig.api.nea24HourWeather);
         
-        updateWeatherUI(forecastData, readingsData);
+        if (!response.ok) {
+            throw new Error(`API returned status ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✓ Weather data received:', data);
+        
+        AppState.weather = data;
+        updateWeatherUI(data);
     } catch (error) {
-        console.error('NEA Weather API error:', error);
+        console.error('❌ NEA Weather API error:', error);
         // Fallback to mock data
-        updateWeatherUI(getMockForecastData(), getMockReadingsData());
+        console.log('📋 Using mock weather data...');
+        const mockData = getMockWeatherData();
+        AppState.weather = mockData;
+        updateWeatherUI(mockData);
     }
 }
 
-function getMockForecastData() {
+function getMockWeatherData() {
+    // Mock NEA 24-hour forecast structure
+    return {
+        items: [{
+            update_timestamp: new Date().toISOString(),
+            valid_period: {
+                start: new Date().toISOString(),
+                end: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+            },
+            general: {
+                forecast: 'Partly cloudy',
+                relative_humidity: {
+                    low: 60,
+                    high: 85
+                },
+                temperature: {
+                    low: 22,
+                    high: 28
+                },
+                wind: {
+                    speed: {
+                        low: 8,
+                        high: 15
+                    },
+                    direction: 'NE'
+                }
+            }
+        }],
+        api_info: {
+            status: 'healthy'
+        }
+    };
+}
+
+function getMock4DayForecast() {
+    // Mock 4-day forecast for display
     return {
         items: [{
             valid_period: {
@@ -242,40 +301,28 @@ function getMockForecastData() {
                 {
                     date: getDateString(0),
                     forecast: 'Partly cloudy',
-                    relative_humidity: { low: 60, high: 80 }
+                    relative_humidity: { low: 60, high: 85 },
+                    temperature: { low: 22, high: 28 }
                 },
                 {
                     date: getDateString(1),
                     forecast: 'Thundery showers',
-                    relative_humidity: { low: 70, high: 90 }
+                    relative_humidity: { low: 70, high: 90 },
+                    temperature: { low: 21, high: 26 }
                 },
                 {
                     date: getDateString(2),
                     forecast: 'Cloudy',
-                    relative_humidity: { low: 65, high: 85 }
+                    relative_humidity: { low: 65, high: 85 },
+                    temperature: { low: 23, high: 27 }
                 },
                 {
                     date: getDateString(3),
                     forecast: 'Partly cloudy',
-                    relative_humidity: { low: 60, high: 80 }
+                    relative_humidity: { low: 60, high: 80 },
+                    temperature: { low: 22, high: 28 }
                 }
             ]
-        }]
-    };
-}
-
-function getMockReadingsData() {
-    return {
-        items: [{
-            metadata: {
-                stations: [
-                    { id: 'S1', name: 'Pasir Ris', location: { lat: 1.3815, lon: 103.9556 } }
-                ]
-            },
-            readings: [{
-                station_id: 'S1',
-                value: 24
-            }]
         }]
     };
 }
@@ -286,61 +333,78 @@ function getDateString(daysOffset) {
     return date.toISOString().split('T')[0];
 }
 
-function updateWeatherUI(forecastData, readingsData) {
+function updateWeatherUI(weatherData) {
+    if (!weatherData?.items?.[0]) {
+        console.warn('No weather data available');
+        return;
+    }
+
+    const item = weatherData.items[0];
+    const general = item.general || {};
+    
     // Update current weather
     const currentWeatherEl = document.getElementById('current-weather');
-    if (currentWeatherEl && readingsData?.items?.[0]?.readings?.[0]) {
-        const temp = readingsData.items[0].readings[0].value;
-        const humidity = forecastData?.items?.[0]?.forecasts?.[0]?.relative_humidity?.high || 75;
+    if (currentWeatherEl) {
+        const temp = general.temperature || {};
+        const tempHigh = temp.high || 28;
+        const humidity = general.relative_humidity || {};
+        const emoji = getForecastEmoji(general.forecast || 'Partly cloudy');
+        
         currentWeatherEl.innerHTML = `
-            <p><strong>🌡️ ${temp}°C</strong></p>
-            <p class="small-text">Humidity: ${humidity}%</p>
-            <p class="small-text">📍 Pasir Ris Station</p>
+            <p><strong>${emoji} ${tempHigh}°C</strong></p>
+            <p class="small-text">Humidity: ${humidity.low || 60}-${humidity.high || 85}%</p>
+            <p class="small-text">Wind: ${general.wind?.speed?.low || 8}-${general.wind?.speed?.high || 15} km/h ${general.wind?.direction || 'NE'}</p>
         `;
     }
 
-    // Update ocean conditions
+    // Update ocean conditions (beach advisory)
     const oceanConditionsEl = document.getElementById('ocean-conditions');
-    if (oceanConditionsEl && forecastData?.items?.[0]?.forecasts?.[0]) {
-        const forecast = forecastData.items[0].forecasts[0];
-        const humidity = forecast.relative_humidity;
+    if (oceanConditionsEl) {
+        const forecast = general.forecast || 'Partly cloudy';
+        const humidity = general.relative_humidity || {};
+        
         oceanConditionsEl.innerHTML = `
-            <p><strong>🌊 ${forecast.forecast}</strong></p>
-            <p class="small-text">Humidity: ${humidity?.low || 70}-${humidity?.high || 85}%</p>
-            <p class="small-text">⚠️ Check tide times locally</p>
+            <p><strong>🌊 ${forecast}</strong></p>
+            <p class="small-text">Humidity: ${humidity.low || 60}-${humidity.high || 85}%</p>
+            <p class="small-text">Temp: ${general.temperature?.low || 22}-${general.temperature?.high || 28}°C</p>
         `;
     }
 
     // Render 4-day forecast
-    const bestTimeEl = document.getElementById('best-time');
-    if (bestTimeEl) {
-        bestTimeEl.innerHTML = '<p><strong>📅 4-Day Forecast</strong></p>';
-        bestTimeEl.id = 'forecast-container';
-        renderForecastGrid(forecastData);
-    }
+    renderForecastGrid(getMock4DayForecast());
 }
 
 function renderForecastGrid(forecastData) {
     const weatherGrid = document.getElementById('weather-grid');
-    if (!weatherGrid || !forecastData?.items?.[0]?.forecasts) return;
+    if (!weatherGrid || !forecastData?.items?.[0]?.forecasts) {
+        console.warn('Cannot render forecast - missing data');
+        return;
+    }
 
-    // Create forecast cards
     const forecasts = forecastData.items[0].forecasts;
-    const forecastHTML = forecasts.map((day, index) => `
-        <div class="weather-card forecast-card">
-            <h4>${formatDateForDisplay(day.date)}</h4>
-            <div class="weather-content">
-                <p><strong>${getForecastEmoji(day.forecast)} ${day.forecast}</strong></p>
-                <p class="small-text">
-                    Humidity: ${day.relative_humidity?.low || 65}-${day.relative_humidity?.high || 85}%
-                </p>
-                ${index === 0 ? '<p class="forecast-best">✅ Best for cleanup!</p>' : ''}
+    const forecastHTML = forecasts.map((day, index) => {
+        const emoji = getForecastEmoji(day.forecast);
+        const bestLabel = index === 0 ? '<p class="forecast-best">✅ Best for cleanup!</p>' : '';
+        
+        return `
+            <div class="weather-card forecast-card" role="listitem">
+                <h4>${formatDateForDisplay(day.date)}</h4>
+                <div class="weather-content">
+                    <p><strong>${emoji} ${day.forecast}</strong></p>
+                    <p class="small-text">
+                        ${day.temperature?.low || 22}-${day.temperature?.high || 28}°C
+                    </p>
+                    <p class="small-text">
+                        💧 ${day.relative_humidity?.low || 60}-${day.relative_humidity?.high || 85}%
+                    </p>
+                    ${bestLabel}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
-    // Update weather grid to show only 4-day forecast
     weatherGrid.innerHTML = forecastHTML;
+    console.log('✓ Forecast grid rendered');
 }
 
 function formatDateForDisplay(dateString) {
@@ -473,10 +537,33 @@ function handleScheduleCleanup() {
 }
 
 function updateStats() {
-    document.getElementById('cleanups-count').textContent = AppState.stats.cleanups;
-    document.getElementById('trash-count').textContent = AppState.stats.trash;
-    document.getElementById('crew-count').textContent = AppState.stats.crewMembers;
-    document.getElementById('impact-count').textContent = AppState.stats.beaches;
+    // Animate stats with smooth counting effect
+    animateCounter('cleanups-count', AppState.stats.cleanups);
+    animateCounter('trash-count', AppState.stats.trash);
+    animateCounter('crew-count', AppState.stats.crewMembers);
+    animateCounter('impact-count', AppState.stats.beaches);
+}
+
+function animateCounter(elementId, targetValue) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const duration = 1000; // 1 second animation
+    const increment = targetValue / (duration / 16); // 60fps
+    let currentValue = 0;
+    
+    const animate = () => {
+        currentValue += increment;
+        
+        if (currentValue >= targetValue) {
+            element.textContent = targetValue;
+        } else {
+            element.textContent = Math.floor(currentValue);
+            requestAnimationFrame(animate);
+        }
+    };
+    
+    animate();
 }
 
 // ============================================
@@ -486,6 +573,8 @@ function updateStats() {
 function renderUI() {
     renderCrewGrid();
     updateStats();
+    // Load weather on app start
+    fetchWeatherData();
 }
 
 // ============================================
