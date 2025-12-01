@@ -7,7 +7,7 @@
    CSS Custom Properties (Variables)
    ============================================ */
 :root {
-    /* Colors */
+    /* Colors - Beach Theme */
     --primary-blue: #0077B6;
     --secondary-teal: #00B4D8;
     --accent-coral: #FF6B6B;
@@ -16,6 +16,9 @@
     --light-gray: #E8E8E8;
     --success-green: #06A77D;
     --warning-orange: #FB8500;
+    --sky-light: #E0F7FF;
+    --sky-blue: #87CEEB;
+    --ocean-blue: #006B9E;
 
     /* Typography */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -64,18 +67,6 @@
     --z-modal: 1100;
 }
 
-/* Dark mode theme */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --primary-blue: #00B4FF;
-        --secondary-teal: #00E5FF;
-        --accent-coral: #FF7A7A;
-        --neutral-white: #0F1419;
-        --dark-slate: #E8E8E8;
-        --light-gray: #2A2A2A;
-    }
-}
-
 /* ============================================
    RESET & BASE STYLES
    ============================================ */
@@ -96,8 +87,8 @@ body {
     font-weight: var(--font-weight-regular);
     line-height: 1.6;
     color: var(--dark-slate);
-    background-color: var(--neutral-white);
-    transition: background-color var(--transition-base), color var(--transition-base);
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--sky-light) 30%, var(--sky-blue) 60%, var(--ocean-blue) 100%);
+    min-height: 100vh;
 }
 
 /* ============================================
@@ -256,18 +247,12 @@ button {
    HEADER & NAVIGATION
    ============================================ */
 .header {
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     box-shadow: var(--shadow-md);
     position: sticky;
     top: 0;
     z-index: var(--z-header);
-    transition: background-color var(--transition-base);
-}
-
-@media (prefers-color-scheme: dark) {
-    .header {
-        background-color: #1a1a1a;
-    }
 }
 
 .header-content {
@@ -317,17 +302,6 @@ button {
 
 .nav-link:hover::after {
     width: 100%;
-}
-
-.theme-toggle {
-    background-color: transparent;
-    font-size: var(--font-size-xl);
-    padding: var(--spacing-sm);
-    transition: transform var(--transition-base);
-}
-
-.theme-toggle:hover {
-    transform: scale(1.1);
 }
 
 @media (max-width: 768px) {
@@ -404,17 +378,41 @@ button {
     align-items: center;
 }
 
-.hero-image svg {
+.hero-sun {
     width: 100%;
     max-width: 250px;
-    color: white;
-    opacity: 0.8;
-    animation: float 3s ease-in-out infinite;
+    color: var(--ocean-blue);
+    opacity: 0.9;
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+.sun-group {
+    animation: rotateSun 20s linear infinite;
+}
+
+.sun-ray {
+    animation: pulseSunRay 1.5s ease-in-out infinite;
+}
+
+@keyframes rotateSun {
+    from {
+        transform: rotate(0deg);
+        transform-origin: 100px 100px;
+    }
+    to {
+        transform: rotate(360deg);
+        transform-origin: 100px 100px;
+    }
+}
+
+@keyframes pulseSunRay {
+    0%, 100% {
+        opacity: 0.6;
+        r: 6px;
+    }
+    50% {
+        opacity: 1;
+        r: 8px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -755,10 +753,88 @@ button {
 }
 
 /* ============================================
+   EVENTS SECTION
+   ============================================ */
+.events-section {
+    background: linear-gradient(135deg, rgba(224, 247, 255, 0.8), rgba(135, 206, 235, 0.6));
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-xl);
+}
+
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.event-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+    display: flex;
+    border-left: 4px solid var(--secondary-teal);
+}
+
+.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.event-date {
+    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-teal));
+    color: white;
+    padding: var(--spacing-lg);
+    min-width: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    flex-shrink: 0;
+}
+
+.event-content {
+    padding: var(--spacing-lg);
+    flex: 1;
+}
+
+.event-content h3 {
+    color: var(--primary-blue);
+    font-size: var(--font-size-lg);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.event-location,
+.event-time {
+    color: var(--dark-slate);
+    font-size: var(--font-size-sm);
+    margin: var(--spacing-xs) 0;
+    font-weight: var(--font-weight-medium);
+}
+
+.event-description {
+    color: var(--dark-slate);
+    font-size: var(--font-size-sm);
+    margin: var(--spacing-md) 0;
+    line-height: 1.5;
+}
+
+.btn-small {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    background-color: var(--secondary-teal);
+    color: white;
+    width: auto;
+}
+
+/* ============================================
    FOOTER
    ============================================ */
 .footer {
-    background-color: var(--dark-slate);
+    background: linear-gradient(180deg, var(--sky-blue) 0%, var(--ocean-blue) 100%);
     color: white;
     padding: var(--spacing-3xl) 0 var(--spacing-xl);
     margin-top: var(--spacing-3xl);

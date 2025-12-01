@@ -28,12 +28,11 @@
                         <li><a href="#map" class="nav-link">Map</a></li>
                         <li><a href="#crew" class="nav-link">My Crew</a></li>
                         <li><a href="#weather" class="nav-link">Weather</a></li>
+                        <li><a href="#events" class="nav-link">Events</a></li>
                         <li><a href="#mission" class="nav-link">Mission</a></li>
                     </ul>
                 </nav>
-                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-                    <span class="theme-icon">🌙</span>
-                </button>
+
             </div>
         </div>
     </header>
@@ -50,11 +49,27 @@
                 </div>
             </div>
             <div class="hero-image">
-                <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
-                    <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"/>
-                    <path d="M50 120 Q100 80 150 120" stroke="currentColor" stroke-width="3" fill="none"/>
-                    <circle cx="80" cy="100" r="5" fill="currentColor" opacity="0.6"/>
-                    <circle cx="120" cy="100" r="5" fill="currentColor" opacity="0.6"/>
+                <svg class="hero-sun" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+                    <!-- Animated Sun -->
+                    <g class="sun-group">
+                        <!-- Sun rays -->
+                        <circle cx="100" cy="30" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0s;"/>
+                        <circle cx="143" cy="43" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0.1s;"/>
+                        <circle cx="170" cy="100" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0.2s;"/>
+                        <circle cx="143" cy="157" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0.3s;"/>
+                        <circle cx="100" cy="170" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0.4s;"/>
+                        <circle cx="57" cy="157" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0.5s;"/>
+                        <circle cx="30" cy="100" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0.6s;"/>
+                        <circle cx="57" cy="43" r="6" fill="currentColor" class="sun-ray" style="animation-delay: 0.7s;"/>
+                        
+                        <!-- Sun body -->
+                        <circle cx="100" cy="100" r="35" fill="#FFD700" stroke="currentColor" stroke-width="2"/>
+                        
+                        <!-- Sun face -->
+                        <circle cx="90" cy="95" r="4" fill="currentColor"/>
+                        <circle cx="110" cy="95" r="4" fill="currentColor"/>
+                        <path d="M 85 110 Q 100 120 115 110" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
                 </svg>
             </div>
         </div>
@@ -145,6 +160,56 @@
                 <div class="weather-grid" id="weather-grid" role="list">
                     <div class="weather-card forecast-card" role="listitem">
                         <p class="small-text">Loading forecast...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Events Section -->
+            <section id="events" class="feature-section events-section" role="region" aria-label="Upcoming cleanup events">
+                <h2>🗓️ Upcoming Events</h2>
+                <div class="events-grid" id="events-grid" role="list">
+                    <div class="event-card" role="listitem">
+                        <div class="event-date">Dec 7</div>
+                        <div class="event-content">
+                            <h3>Pasir Ris Beach Cleanup</h3>
+                            <p class="event-location">📍 Pasir Ris Beach</p>
+                            <p class="event-time">⏰ 09:00 AM - 11:00 AM</p>
+                            <p class="event-description">Community beach cleanup with focus on microplastics removal.</p>
+                            <button class="btn btn-small" aria-label="Join event on Dec 7">Join Event</button>
+                        </div>
+                    </div>
+                    
+                    <div class="event-card" role="listitem">
+                        <div class="event-date">Dec 14</div>
+                        <div class="event-content">
+                            <h3>East Coast Park Cleanup</h3>
+                            <p class="event-location">📍 East Coast Park</p>
+                            <p class="event-time">⏰ 10:00 AM - 12:30 PM</p>
+                            <p class="event-description">Extended cleanup session with team lunch included.</p>
+                            <button class="btn btn-small" aria-label="Join event on Dec 14">Join Event</button>
+                        </div>
+                    </div>
+                    
+                    <div class="event-card" role="listitem">
+                        <div class="event-date">Dec 21</div>
+                        <div class="event-content">
+                            <h3>Sentosa Island Beach Day</h3>
+                            <p class="event-location">📍 Sentosa Beach</p>
+                            <p class="event-time">⏰ 08:00 AM - 01:00 PM</p>
+                            <p class="event-description">Full day beach cleanup and environmental awareness workshop.</p>
+                            <button class="btn btn-small" aria-label="Join event on Dec 21">Join Event</button>
+                        </div>
+                    </div>
+                    
+                    <div class="event-card" role="listitem">
+                        <div class="event-date">Dec 28</div>
+                        <div class="event-content">
+                            <h3>Changi Beach Year-End Cleanup</h3>
+                            <p class="event-location">📍 Changi Beach</p>
+                            <p class="event-time">⏰ 09:00 AM - 12:00 PM</p>
+                            <p class="event-description">Year-end celebration cleanup with beach games and prizes.</p>
+                            <button class="btn btn-small" aria-label="Join event on Dec 28">Join Event</button>
+                        </div>
                     </div>
                 </div>
             </section>

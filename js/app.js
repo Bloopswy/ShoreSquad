@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeApp() {
     loadStateFromStorage();
-    setupTheme();
     setupEventListeners();
     renderUI();
     console.log('🌊 ShoreSquad initialized successfully!');
@@ -96,46 +95,6 @@ function saveStateToStorage() {
 }
 
 // ============================================
-// THEME MANAGEMENT
-// ============================================
-
-function setupTheme() {
-    const themeToggle = document.getElementById('theme-toggle');
-    if (!themeToggle) return;
-
-    // Initialize theme on page load
-    updateThemeDisplay();
-
-    themeToggle.addEventListener('click', toggleTheme);
-}
-
-function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = AppState.theme === 'dark';
-    
-    AppState.theme = isDark ? 'light' : 'dark';
-    localStorage.setItem(AppConfig.storageKeys.theme, AppState.theme);
-    
-    if (isDark) {
-        html.style.colorScheme = 'light';
-    } else {
-        html.style.colorScheme = 'dark';
-    }
-    
-    updateThemeDisplay();
-}
-
-function updateThemeDisplay() {
-    const themeToggle = document.getElementById('theme-toggle');
-    if (!themeToggle) return;
-    
-    themeToggle.textContent = AppState.theme === 'dark' ? '☀️' : '🌙';
-    themeToggle.setAttribute('aria-label', 
-        `Switch to ${AppState.theme === 'dark' ? 'light' : 'dark'} mode`
-    );
-}
-
-// ============================================
 // EVENT LISTENER SETUP
 // ============================================
 
@@ -163,6 +122,9 @@ function setupEventListeners() {
     // Schedule cleanup button
     const scheduleBtn = document.getElementById('schedule-cleanup-btn');
     scheduleBtn?.addEventListener('click', handleScheduleCleanup);
+    
+    // Event join buttons
+    setupEventButtons();
 }
 
 // ============================================
@@ -575,6 +537,8 @@ function renderUI() {
     updateStats();
     // Load weather on app start
     fetchWeatherData();
+    // Setup event join buttons
+    setupEventButtons();
 }
 
 // ============================================
@@ -639,6 +603,25 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ============================================
+// EVENTS MANAGEMENT
+// ============================================
+
+function setupEventButtons() {
+    const eventButtons = document.querySelectorAll('.event-card .btn-small');
+    eventButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const eventCard = e.target.closest('.event-card');
+            const eventTitle = eventCard.querySelector('h3').textContent;
+            const eventDate = eventCard.querySelector('.event-date').textContent.trim();
+            
+            showNotification(`✅ You've joined "${eventTitle}" on ${eventDate}!`, 'success');
+            e.target.disabled = true;
+            e.target.textContent = 'Joined ✓';
+        });
+    });
+}
 
 // ============================================
 // PERFORMANCE OPTIMIZATION
