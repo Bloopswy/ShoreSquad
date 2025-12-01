@@ -125,25 +125,26 @@
 
             <!-- Weather Section -->
             <section id="weather" class="feature-section" role="region" aria-label="Weather information">
-                <h2>Beach Conditions</h2>
-                <div class="weather-grid" id="weather-grid" role="list">
-                    <div class="weather-card" role="listitem">
-                        <h3>Current Weather</h3>
+                <h2>Beach Conditions & 4-Day Forecast</h2>
+                <div class="weather-overview">
+                    <div class="weather-card overview-card" role="listitem">
+                        <h3>🌡️ Current Weather</h3>
                         <div id="current-weather" class="weather-content" role="status" aria-live="polite">
-                            <p>Weather data unavailable</p>
+                            <p>📍 Enable location to load weather</p>
                         </div>
                     </div>
-                    <div class="weather-card" role="listitem">
-                        <h3>Ocean Conditions</h3>
+                    <div class="weather-card overview-card" role="listitem">
+                        <h3>🌊 Ocean Conditions</h3>
                         <div id="ocean-conditions" class="weather-content" role="status" aria-live="polite">
-                            <p>Enable location for wave & tide data</p>
+                            <p>Enable location for conditions data</p>
                         </div>
                     </div>
-                    <div class="weather-card" role="listitem">
-                        <h3>Best Time</h3>
-                        <div id="best-time" class="weather-content" role="status" aria-live="polite">
-                            <p>Next ideal cleanup window</p>
-                        </div>
+                </div>
+                
+                <h3 style="text-align: left; margin-top: var(--spacing-xl); margin-bottom: var(--spacing-lg);">📅 4-Day Forecast</h3>
+                <div class="weather-grid" id="weather-grid" role="list">
+                    <div class="weather-card forecast-card" role="listitem">
+                        <p class="small-text">Loading forecast...</p>
                     </div>
                 </div>
             </section>

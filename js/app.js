@@ -15,8 +15,12 @@ const AppConfig = {
         theme: 'shoresquad_theme'
     },
     api: {
-        // Weather API placeholder - can integrate with real API
-        weatherApiBase: 'https://api.open-meteo.com/v1/forecast'
+        // NEA Realtime Weather Readings API - Singapore
+        neaWeatherReadings: 'https://api.data.gov.sg/v1/environment/air-temperature',
+        neaWeatherForecast: 'https://api.data.gov.sg/v1/environment/2-hour-weather-forecast',
+        neaWeather4Day: 'https://api.data.gov.sg/v1/environment/4-day-weather-forecast',
+        // Fallback: Open-Meteo for extended forecasts
+        openMeteo: 'https://api.open-meteo.com/v1/forecast'
     }
 };
 
@@ -210,66 +214,157 @@ function updateLocationUI() {
 }
 
 async function fetchWeatherData() {
-    if (!AppState.userLocation) return;
-
     try {
-        const { lat, lng } = AppState.userLocation;
-        const url = `${AppConfig.api.weatherApiBase}?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;
+        // Fetch NEA 4-day forecast for Singapore
+        const forecastResponse = await fetch(AppConfig.api.neaWeather4Day);
+        const forecastData = await forecastResponse.json();
         
-        const response = await fetch(url);
-        const data = await response.json();
+        // Fetch current conditions
+        const readingsResponse = await fetch(AppConfig.api.neaWeatherReadings);
+        const readingsData = await readingsResponse.json();
         
-        updateWeatherUI(data);
+        updateWeatherUI(forecastData, readingsData);
     } catch (error) {
-        console.error('Weather API error:', error);
+        console.error('NEA Weather API error:', error);
         // Fallback to mock data
-        updateWeatherUI(getMockWeatherData());
+        updateWeatherUI(getMockForecastData(), getMockReadingsData());
     }
 }
 
-function getMockWeatherData() {
+function getMockForecastData() {
     return {
-        current: {
-            temperature_2m: 22,
-            weather_code: 80,
-            wind_speed_10m: 12
-        }
+        items: [{
+            valid_period: {
+                start: new Date().toISOString(),
+                end: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            forecasts: [
+                {
+                    date: getDateString(0),
+                    forecast: 'Partly cloudy',
+                    relative_humidity: { low: 60, high: 80 }
+                },
+                {
+                    date: getDateString(1),
+                    forecast: 'Thundery showers',
+                    relative_humidity: { low: 70, high: 90 }
+                },
+                {
+                    date: getDateString(2),
+                    forecast: 'Cloudy',
+                    relative_humidity: { low: 65, high: 85 }
+                },
+                {
+                    date: getDateString(3),
+                    forecast: 'Partly cloudy',
+                    relative_humidity: { low: 60, high: 80 }
+                }
+            ]
+        }]
     };
 }
 
-function updateWeatherUI(weatherData) {
-    const current = weatherData.current;
-    
+function getMockReadingsData() {
+    return {
+        items: [{
+            metadata: {
+                stations: [
+                    { id: 'S1', name: 'Pasir Ris', location: { lat: 1.3815, lon: 103.9556 } }
+                ]
+            },
+            readings: [{
+                station_id: 'S1',
+                value: 24
+            }]
+        }]
+    };
+}
+
+function getDateString(daysOffset) {
+    const date = new Date();
+    date.setDate(date.getDate() + daysOffset);
+    return date.toISOString().split('T')[0];
+}
+
+function updateWeatherUI(forecastData, readingsData) {
+    // Update current weather
     const currentWeatherEl = document.getElementById('current-weather');
-    if (currentWeatherEl) {
-        const emoji = getWeatherEmoji(current.weather_code);
+    if (currentWeatherEl && readingsData?.items?.[0]?.readings?.[0]) {
+        const temp = readingsData.items[0].readings[0].value;
+        const humidity = forecastData?.items?.[0]?.forecasts?.[0]?.relative_humidity?.high || 75;
         currentWeatherEl.innerHTML = `
-            <p><strong>${emoji} ${current.temperature_2m}°C</strong></p>
-            <p class="small-text">Wind: ${current.wind_speed_10m} km/h</p>
+            <p><strong>🌡️ ${temp}°C</strong></p>
+            <p class="small-text">Humidity: ${humidity}%</p>
+            <p class="small-text">📍 Pasir Ris Station</p>
         `;
     }
 
+    // Update ocean conditions
     const oceanConditionsEl = document.getElementById('ocean-conditions');
-    if (oceanConditionsEl) {
+    if (oceanConditionsEl && forecastData?.items?.[0]?.forecasts?.[0]) {
+        const forecast = forecastData.items[0].forecasts[0];
+        const humidity = forecast.relative_humidity;
         oceanConditionsEl.innerHTML = `
-            <p><strong>🌊 Moderate Waves</strong></p>
-            <p class="small-text">Wave Height: 0.5-1m</p>
-            <p class="small-text">Tide: Rising</p>
+            <p><strong>🌊 ${forecast.forecast}</strong></p>
+            <p class="small-text">Humidity: ${humidity?.low || 70}-${humidity?.high || 85}%</p>
+            <p class="small-text">⚠️ Check tide times locally</p>
         `;
     }
 
+    // Render 4-day forecast
     const bestTimeEl = document.getElementById('best-time');
     if (bestTimeEl) {
-        bestTimeEl.innerHTML = `
-            <p><strong>⏰ Next 6 hours</strong></p>
-            <p class="small-text">Perfect for cleanup!</p>
-            <p class="small-text">Low tide: 14:30</p>
-        `;
+        bestTimeEl.innerHTML = '<p><strong>📅 4-Day Forecast</strong></p>';
+        bestTimeEl.id = 'forecast-container';
+        renderForecastGrid(forecastData);
     }
 }
 
+function renderForecastGrid(forecastData) {
+    const weatherGrid = document.getElementById('weather-grid');
+    if (!weatherGrid || !forecastData?.items?.[0]?.forecasts) return;
+
+    // Create forecast cards
+    const forecasts = forecastData.items[0].forecasts;
+    const forecastHTML = forecasts.map((day, index) => `
+        <div class="weather-card forecast-card">
+            <h4>${formatDateForDisplay(day.date)}</h4>
+            <div class="weather-content">
+                <p><strong>${getForecastEmoji(day.forecast)} ${day.forecast}</strong></p>
+                <p class="small-text">
+                    Humidity: ${day.relative_humidity?.low || 65}-${day.relative_humidity?.high || 85}%
+                </p>
+                ${index === 0 ? '<p class="forecast-best">✅ Best for cleanup!</p>' : ''}
+            </div>
+        </div>
+    `).join('');
+
+    // Update weather grid to show only 4-day forecast
+    weatherGrid.innerHTML = forecastHTML;
+}
+
+function formatDateForDisplay(dateString) {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('en-SG', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric'
+    });
+}
+
+function getForecastEmoji(forecastText) {
+    const text = forecastText.toLowerCase();
+    if (text.includes('thundery') || text.includes('thunder')) return '⛈️';
+    if (text.includes('rain') || text.includes('shower')) return '🌧️';
+    if (text.includes('cloudy') || text.includes('cloud')) return '☁️';
+    if (text.includes('partly cloudy')) return '⛅';
+    if (text.includes('clear') || text.includes('sunny')) return '☀️';
+    if (text.includes('windy') || text.includes('wind')) return '💨';
+    return '🌤️';
+}
+
 function getWeatherEmoji(code) {
-    // WMO weather code to emoji mapping
+    // WMO weather code to emoji mapping (for fallback)
     if (code === 0) return '☀️';
     if (code === 1 || code === 2) return '⛅';
     if (code === 3) return '☁️';
